@@ -59,7 +59,20 @@ export default function Navbar() {
 
                     {/* Sidebar / Control Center Toggle (3-Line UI) */}
                     <button
-                        onClick={toggleSidebar}
+                        onClick={() => {
+                            const isAuth = sessionStorage.getItem("isAdminAuthenticated");
+                            if (isAuth === "true") {
+                                toggleSidebar();
+                            } else {
+                                const pwd = window.prompt("Enter Admin Password to access Control Center:");
+                                if (pwd === (process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "001905rishi")) {
+                                    sessionStorage.setItem("isAdminAuthenticated", "true");
+                                    toggleSidebar();
+                                } else if (pwd !== null) {
+                                    alert("Incorrect password!");
+                                }
+                            }
+                        }}
                         className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex flex-col items-center justify-center gap-1 hover:scale-105 hover:border-purple-500/50 transition-all duration-300 group overflow-hidden relative"
                         aria-label="Toggle Control Center"
                     >
