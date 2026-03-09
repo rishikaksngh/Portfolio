@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useEditor } from "@/context/EditorContext";
 import { responsibilitiesData as initialResponsibilities } from "@/data/leadership";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+
 export default function Leadership() {
     const { isEditMode } = useEditor();
     const [responsibilities, setResponsibilities] = useState(initialResponsibilities);
@@ -15,7 +18,7 @@ export default function Leadership() {
             const content = `export const responsibilitiesData = ${JSON.stringify(responsibilities, null, 4)};\n`;
 
             try {
-                await fetch("http://localhost:5001/save-content", {
+                await fetch(`${API_BASE_URL}/save-content`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -40,48 +43,28 @@ export default function Leadership() {
         setResponsibilities(responsibilities.filter((_, i) => i !== index));
     };
 
+    const updateResponsibility = (index, value) => {
+        const newR = [...responsibilities];
+        newR[index] = value;
+        setResponsibilities(newR);
+    };
+
     return (
         <section id="leadership" className="max-w-6xl mx-auto py-20 px-4">
             <div className="text-center mb-12">
                 <h2 className="section-title">
-                    <span
-                        className={`gradient-text outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
-                        contentEditable={isEditMode}
-                        suppressContentEditableWarning
-                    >
-                        Leadership
-                    </span>
+                    <span className="gradient-text">Leadership</span>
                 </h2>
-                <p
-                    className={`section-subtitle outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5 mt-4' : ''}`}
-                    contentEditable={isEditMode}
-                    suppressContentEditableWarning
-                >
-                    Roles where I lead and make an impact
-                </p>
+                <p className="section-subtitle">Roles where I lead and make an impact</p>
             </div>
 
             <div className="max-w-2xl mx-auto">
                 <div className="glass-card p-8 text-center group relative">
-                    <span
-                        className={`text-4xl mb-4 block outline-none ${isEditMode ? 'ring-2 ring-purple-500/30' : ''}`}
-                        contentEditable={isEditMode}
-                        suppressContentEditableWarning
-                    >
-                        🎓
-                    </span>
-                    <h3
-                        className={`text-xl font-semibold text-white mb-1 outline-none ${isEditMode ? 'ring-2 ring-purple-500/30 rounded px-2' : ''}`}
-                        contentEditable={isEditMode}
-                        suppressContentEditableWarning
-                    >
+                    <span className="text-4xl mb-4 block">🎓</span>
+                    <h3 className="text-xl font-semibold text-white mb-1">
                         Secretary — Council of Cultural Affairs
                     </h3>
-                    <p
-                        className={`text-purple-400 text-sm mb-6 outline-none ${isEditMode ? 'ring-2 ring-purple-500/30 rounded px-2' : ''}`}
-                        contentEditable={isEditMode}
-                        suppressContentEditableWarning
-                    >
+                    <p className="text-purple-400 text-sm mb-6">
                         JK Lakshmipat University
                     </p>
 
@@ -108,6 +91,7 @@ export default function Leadership() {
                                     className={`text-zinc-300 text-sm flex-1 text-left outline-none ${isEditMode ? 'ring-1 ring-purple-500/30 px-1' : ''}`}
                                     contentEditable={isEditMode}
                                     suppressContentEditableWarning
+                                    onBlur={(e) => updateResponsibility(index, e.target.innerText)}
                                 >
                                     {item}
                                 </span>

@@ -1,22 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { projects as initialProjects } from "@/data/projects";
 import ProjectCard from "./ProjectCard";
+import { projectsData as initialProjectsData } from "@/data/projects";
 import { useEditor } from "@/context/EditorContext";
+
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
 
 export default function Projects() {
     const { isEditMode } = useEditor();
-    const [projects, setProjects] = useState(initialProjects);
+    const [projectsData, setProjectsData] = useState(initialProjectsData);
 
     useEffect(() => {
         const handleGlobalSave = async () => {
             if (!isEditMode) return;
 
-            const content = `export const projects = ${JSON.stringify(projects, null, 4)};\n`;
+            const content = `export const projectsData = ${JSON.stringify(projectsData, null, 4)};\n`;
 
             try {
-                await fetch("http://localhost:5001/save-content", {
+                await fetch(`${API_BASE_URL}/save-content`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -31,71 +34,88 @@ export default function Projects() {
 
         window.addEventListener("portfolio-save-all", handleGlobalSave);
         return () => window.removeEventListener("portfolio-save-all", handleGlobalSave);
-    }, [projects, isEditMode]);
+    }, [projectsData, isEditMode]);
 
-    const addProject = () => {
-        const newProject = {
-            title: "New Project",
-            slug: "new-project",
-            description: "Describe your project here...",
-            icon: "🚀",
-            tech: ["React", "Tailwind"],
-            links: { github: "#", live: "#" }
-        };
-        setProjects([...projects, newProject]);
+    const handleProjectUpdate = (index, field, value) => {
+        const newProjects = [...projectsData.projects];
+        newProjects[index][field] = value;
+        setProjectsData({ ...projectsData, projects: newProjects });
     };
 
-    const removeProject = (index) => {
-        setProjects(projects.filter((_, i) => i !== index));
+    const handleTechUpdate = (pIndex, tIndex, value) => {
+        const newProjects = [...projectsData.projects];
+        newProjects[pIndex].tech[tIndex] = value;
+        setProjectsData({ ...projectsData, projects: newProjects });
+    };
+
+    const updateHeader = (field, value) => {
+        setProjectsData({ ...projectsData, [field]: value });
     };
 
     return (
-        <section id="projects" className="max-w-6xl mx-auto py-20 px-4">
-            <div className="text-center mb-12">
-                <h2 className="section-title">
-                    <span
-                        className={`outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
+        <section id="projects" className="py-20 relative">
+            <div className="max-w-6xl mx-auto px-4">
+                <div className="text-center mb-16">
+                    <h2 className="section-title">
+                        <span
+                            className={`outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
+                            contentEditable={isEditMode}
+                            suppressContentEditableWarning
+                            onBlur={(e) => updateHeader("title", e.target.innerText)}
+                        >
+                            {projectsData.title}
+                        </span> <span className="gradient-text">Projects</span>
+                    </h2>
+                    <p
+                        className={`section-subtitle outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5 mt-4' : ''}`}
                         contentEditable={isEditMode}
                         suppressContentEditableWarning
+                        onBlur={(e) => updateHeader("subtitle", e.target.innerText)}
                     >
-                        Featured
-                    </span> <span className="gradient-text">Projects</span>
-                </h2>
-                <p
-                    className={`section-subtitle outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5 mt-4' : ''}`}
-                    contentEditable={isEditMode}
-                    suppressContentEditableWarning
-                >
-                    Things I&apos;ve built that I&apos;m proud of
-                </p>
-            </div>
+                        {projectsData.subtitle}
+                    </p>
+                </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-                {projects.map((project, index) => (
-                    <ProjectCard
-                        key={index}
-                        project={project}
-                        isEditMode={isEditMode}
-                        onRemove={() => removeProject(index)}
-                        onUpdate={(field, value) => {
-                            const newProjects = [...projects];
-                            newProjects[index] = { ...newProjects[index], [field]: value };
-                            setProjects(newProjects);
-                        }}
-                    />
-                ))}
-
-                {isEditMode && (
-                    <button
-                        onClick={addProject}
-                        className="glass-card flex flex-col items-center justify-center p-12 border-2 border-dashed border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/5 transition-all group min-h-[300px]"
-                    >
-                        <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 text-3xl mb-4 group-hover:scale-110 transition-transform">
-                            +
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {projectsData.projects.filter(p => p.overview).map((project, index) => (
+                        <div key={project.slug} className="animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
+                            <ProjectCard
+                                project={project}
+                                onUpdate={(field, value) => handleProjectUpdate(index, field, value)}
+                                onTechUpdate={(tIndex, value) => handleTechUpdate(index, tIndex, value)}
+                            />
                         </div>
-                        <span className="text-sm font-black text-purple-400 uppercase tracking-widest">Add New Project</span>
-                    </button>
-                )}
+                    ))}
+                    {isEditMode && (
+                        <button
+                            onClick={() => {
+                                const newP = [...projectsData.projects];
+                                newP.push({
+                                    slug: "new-project",
+                                    title: "New Project",
+                                    subtitle: "Project subtitle",
+                                    description: "Description of the new project...",
+                                    tech: ["React", "Next.js"],
+                                    icon: "⭐",
+                                    overview: true
+                                });
+                                setProjectsData({ ...projectsData, projects: newP });
+                            }}
+                            className="glass-card flex flex-col items-center justify-center p-8 border-2 border-dashed border-purple-500/30 hover:border-purple-500/60 transition-all min-h-[400px] group"
+                        >
+                            <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center text-3xl text-purple-400 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all mb-4">
+                                +
+                            </div>
+                            <span className="text-purple-400 font-bold uppercase tracking-wider text-sm group-hover:text-purple-300">Add Project</span>
+                        </button>
+                    )}
+                </div>
+
+                <div className="text-center mt-12 animate-fade-in-up" style={{ animationDelay: '450ms' }}>
+                    <a href="/projects" className="btn-glow inline-block">
+                        View All Projects
+                    </a>
+                </div>
             </div>
         </section>
     );

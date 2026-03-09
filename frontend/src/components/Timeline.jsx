@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { timelineData as initialTimelineData } from "@/data/timeline";
 import { useEditor } from "@/context/EditorContext";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+
 const typeConfig = {
     education: {
         icon: (
@@ -157,16 +160,16 @@ function TimelineCard({ item, index, isEditMode, onRemove, onUpdate }) {
 
 export default function Timeline() {
     const { isEditMode } = useEditor();
-    const [timeline, setTimeline] = useState(initialTimelineData);
+    const [timelineData, setTimelineData] = useState(initialTimelineData);
 
     useEffect(() => {
         const handleGlobalSave = async () => {
             if (!isEditMode) return;
 
-            const content = `export const timelineData = ${JSON.stringify(timeline, null, 4)};\n`;
+            const content = `export const timelineData = ${JSON.stringify(timelineData, null, 4)};\n`;
 
             try {
-                await fetch("http://localhost:5001/save-content", {
+                await fetch(`${API_BASE_URL}/save-content`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -181,24 +184,38 @@ export default function Timeline() {
 
         window.addEventListener("portfolio-save-all", handleGlobalSave);
         return () => window.removeEventListener("portfolio-save-all", handleGlobalSave);
-    }, [timeline, isEditMode]);
+    }, [timelineData, isEditMode]);
 
     const addEvent = () => {
-        setTimeline([
-            ...timeline,
-            {
-                year: "2024",
-                title: "New Milestone",
-                subtitle: "Location/Institution",
-                description: "Briefly describe this milestone...",
-                type: "project",
-                ongoing: false
-            }
-        ]);
+        const newEvent = {
+            year: "2024",
+            title: "New Milestone",
+            subtitle: "Location/Institution",
+            description: "Briefly describe this milestone...",
+            type: "project",
+            ongoing: false
+        };
+        setTimelineData({
+            ...timelineData,
+            events: [...timelineData.events, newEvent]
+        });
     };
 
     const removeEvent = (index) => {
-        setTimeline(timeline.filter((_, i) => i !== index));
+        setTimelineData({
+            ...timelineData,
+            events: timelineData.events.filter((_, i) => i !== index)
+        });
+    };
+
+    const updateEvent = (index, field, value) => {
+        const newEvents = [...timelineData.events];
+        newEvents[index] = { ...newEvents[index], [field]: value };
+        setTimelineData({ ...timelineData, events: newEvents });
+    };
+
+    const updateHeader = (field, value) => {
+        setTimelineData({ ...timelineData, [field]: value });
     };
 
     return (
@@ -209,16 +226,18 @@ export default function Timeline() {
                         className={`outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
                         contentEditable={isEditMode}
                         suppressContentEditableWarning
+                        onBlur={(e) => updateHeader("title", e.target.innerText)}
                     >
-                        My
+                        {timelineData.title}
                     </span> <span className="gradient-text">Journey</span>
                 </h2>
                 <p
                     className={`section-subtitle outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5 mt-4' : ''}`}
                     contentEditable={isEditMode}
                     suppressContentEditableWarning
+                    onBlur={(e) => updateHeader("subtitle", e.target.innerText)}
                 >
-                    A timeline of my growth as a developer and student
+                    {timelineData.subtitle}
                 </p>
             </div>
 
@@ -227,18 +246,14 @@ export default function Timeline() {
                 <div className="absolute left-[17px] md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-500/60 via-cyan-500/40 to-purple-500/10" />
 
                 <div className="space-y-10 md:space-y-12">
-                    {timeline.map((item, i) => (
+                    {timelineData.events.map((item, i) => (
                         <TimelineCard
                             key={i}
                             item={item}
                             index={i}
                             isEditMode={isEditMode}
                             onRemove={removeEvent}
-                            onUpdate={(field, value) => {
-                                const newTimeline = [...timeline];
-                                newTimeline[i] = { ...newTimeline[i], [field]: value };
-                                setTimeline(newTimeline);
-                            }}
+                            onUpdate={(field, value) => updateEvent(i, field, value)}
                         />
                     ))}
                 </div>

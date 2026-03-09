@@ -2,20 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useEditor } from "@/context/EditorContext";
-import { learningItemsData as initialLearningItems } from "@/data/about";
+import { aboutData as initialAboutData } from "@/data/about";
+
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
 
 export default function About() {
     const { isEditMode } = useEditor();
-    const [learningItems, setLearningItems] = useState(initialLearningItems);
+    const [about, setAbout] = useState(initialAboutData);
 
     useEffect(() => {
         const handleGlobalSave = async () => {
             if (!isEditMode) return;
 
-            const content = `export const learningItemsData = ${JSON.stringify(learningItems, null, 4)};\n`;
+            const content = `export const aboutData = ${JSON.stringify(about, null, 4)};\n`;
 
             try {
-                await fetch("http://localhost:5001/save-content", {
+                await fetch(`${API_BASE_URL}/save-content`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -24,13 +27,17 @@ export default function About() {
                     }),
                 });
             } catch (error) {
-                console.error("Failed to save about items:", error);
+                console.error("Failed to save about data:", error);
             }
         };
 
         window.addEventListener("portfolio-save-all", handleGlobalSave);
         return () => window.removeEventListener("portfolio-save-all", handleGlobalSave);
-    }, [learningItems, isEditMode]);
+    }, [about, isEditMode]);
+
+    const updateAbout = (field, value) => {
+        setAbout(prev => ({ ...prev, [field]: value }));
+    };
 
     return (
         <section id="about" className="max-w-6xl mx-auto">
@@ -42,8 +49,9 @@ export default function About() {
                     className={`section-subtitle outline-none transition-all ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-2 bg-white/5 mx-auto max-w-fit' : ''}`}
                     contentEditable={isEditMode}
                     suppressContentEditableWarning
+                    onBlur={(e) => updateAbout('subtitle', e.target.innerText)}
                 >
-                    A glimpse into who I am and what drives me
+                    {about.subtitle}
                 </p>
             </div>
 
@@ -56,26 +64,18 @@ export default function About() {
                             className={`text-xl font-semibold text-white outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
                             contentEditable={isEditMode}
                             suppressContentEditableWarning
+                            onBlur={(e) => updateAbout('bioTitle', e.target.innerText)}
                         >
-                            Who I Am
+                            {about.bioTitle}
                         </h3>
                     </div>
                     <div
                         className={`text-zinc-400 leading-relaxed mb-4 outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-2 bg-white/5' : ''}`}
                         contentEditable={isEditMode}
                         suppressContentEditableWarning
-                    >
-                        <p className="mb-4">
-                            I&apos;m a second-year Computer Science student specializing in
-                            Artificial Intelligence and Machine Learning. I&apos;m passionate about
-                            building intelligent systems that can make a real impact.
-                        </p>
-                        <p>
-                            My journey in tech started with curiosity about how algorithms can
-                            learn from data and grow into systems that solve meaningful
-                            problems — from fraud detection to civic engagement platforms.
-                        </p>
-                    </div>
+                        onBlur={(e) => updateAbout('bioContent', e.target.innerHTML)}
+                        dangerouslySetInnerHTML={{ __html: about.bioContent }}
+                    />
                 </div>
 
                 {/* Currently Learning Card */}
@@ -86,12 +86,13 @@ export default function About() {
                             className={`text-xl font-semibold text-white outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
                             contentEditable={isEditMode}
                             suppressContentEditableWarning
+                            onBlur={(e) => updateAbout('learningTitle', e.target.innerText)}
                         >
-                            Currently Learning
+                            {about.learningTitle}
                         </h3>
                     </div>
                     <div className="space-y-3 stagger-children">
-                        {learningItems.map((item, index) => (
+                        {about.learningItems.map((item, index) => (
                             <div
                                 key={index}
                                 className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300 group"
@@ -102,16 +103,19 @@ export default function About() {
                                     contentEditable={isEditMode}
                                     suppressContentEditableWarning
                                     onBlur={(e) => {
-                                        const newItems = [...learningItems];
+                                        const newItems = [...about.learningItems];
                                         newItems[index] = e.target.innerText;
-                                        setLearningItems(newItems);
+                                        setAbout({ ...about, learningItems: newItems });
                                     }}
                                 >
                                     {item}
                                 </span>
                                 {isEditMode && (
                                     <button
-                                        onClick={() => setLearningItems(learningItems.filter((_, i) => i !== index))}
+                                        onClick={() => {
+                                            const newItems = about.learningItems.filter((_, i) => i !== index);
+                                            setAbout({ ...about, learningItems: newItems });
+                                        }}
                                         className="opacity-0 group-hover:opacity-100 text-red-500/50 hover:text-red-500 transition-opacity text-xs"
                                         title="Remove item"
                                     >
@@ -122,7 +126,9 @@ export default function About() {
                         ))}
                         {isEditMode && (
                             <button
-                                onClick={() => setLearningItems([...learningItems, "New Learning Item"])}
+                                onClick={() => {
+                                    setAbout({ ...about, learningItems: [...about.learningItems, "New Learning Item"] });
+                                }}
                                 className="w-full py-2 border border-dashed border-purple-500/20 rounded-lg text-xs text-purple-400 hover:bg-purple-500/5 transition-colors"
                             >
                                 + Add Learning Item

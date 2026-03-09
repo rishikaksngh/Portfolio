@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useEditor } from "@/context/EditorContext";
 import Link from "next/link";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+
 const navLinks = [
     { label: "Home", href: "/#home", icon: "🏠" },
     { label: "About", href: "/#about", icon: "👤" },
@@ -29,7 +32,7 @@ export default function AdminSidebar() {
         formData.append("file", file);
 
         try {
-            const res = await fetch("http://localhost:5001/upload-profile", {
+            const res = await fetch(`${API_BASE_URL}/upload-profile`, {
                 method: "POST",
                 body: formData,
             });

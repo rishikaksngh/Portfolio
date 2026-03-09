@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useEditor } from "@/context/EditorContext";
 import { heroData as initialHeroData } from "@/data/hero";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+
 export default function Hero() {
     const { isEditMode } = useEditor();
     const [hero, setHero] = useState(initialHeroData);
@@ -24,7 +27,7 @@ export default function Hero() {
             if (!isEditMode) return;
             const content = `export const heroData = ${JSON.stringify(hero, null, 4)};\n`;
             try {
-                await fetch("http://localhost:5001/save-content", {
+                await fetch(`${API_BASE_URL}/save-content`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

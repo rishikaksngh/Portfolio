@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useEditor } from "@/context/EditorContext";
 import { achievementsData as initialAchievements } from "@/data/achievements";
 
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+
 export default function Achievements() {
     const { isEditMode } = useEditor();
     const [achievements, setAchievements] = useState(initialAchievements);
@@ -15,7 +18,7 @@ export default function Achievements() {
             const content = `export const achievementsData = ${JSON.stringify(achievements, null, 4)};\n`;
 
             try {
-                await fetch("http://localhost:5001/save-content", {
+                await fetch(`${API_BASE_URL}/save-content`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -53,21 +56,9 @@ export default function Achievements() {
         <section id="achievements" className="max-w-6xl mx-auto py-20 px-4">
             <div className="text-center mb-12">
                 <h2 className="section-title">
-                    <span
-                        className={`gradient-text outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
-                        contentEditable={isEditMode}
-                        suppressContentEditableWarning
-                    >
-                        Achievements
-                    </span>
+                    <span className="gradient-text">Achievements</span>
                 </h2>
-                <p
-                    className={`section-subtitle outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5 mt-4' : ''}`}
-                    contentEditable={isEditMode}
-                    suppressContentEditableWarning
-                >
-                    Wins beyond the code
-                </p>
+                <p className="section-subtitle">Wins beyond the code</p>
             </div>
 
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-5xl mx-auto stagger-children">

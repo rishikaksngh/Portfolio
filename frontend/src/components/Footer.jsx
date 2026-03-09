@@ -1,11 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { footerData as initialFooterData } from "@/data/footer";
 import { useEditor } from "@/context/EditorContext";
+
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
 
 export default function Footer() {
     const { isEditMode } = useEditor();
-    const [name, setName] = useState("Rishika Singh");
+    const [footerData, setFooterData] = useState(initialFooterData);
+
+    useEffect(() => {
+        const handleGlobalSave = async () => {
+            if (!isEditMode) return;
+
+            const content = `export const footerData = ${JSON.stringify(footerData, null, 4)};\n`;
+
+            try {
+                await fetch(`${API_BASE_URL}/save-content`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: "data/footer.js",
+                        content: content
+                    }),
+                });
+            } catch (error) {
+                console.error("Failed to save footer info:", error);
+            }
+        };
+
+        window.addEventListener("portfolio-save-all", handleGlobalSave);
+        return () => window.removeEventListener("portfolio-save-all", handleGlobalSave);
+    }, [footerData, isEditMode]);
 
     return (
         <footer className="border-t border-purple-500/10 py-12 px-4 bg-[#030305]">
@@ -17,9 +45,9 @@ export default function Footer() {
                             className={`gradient-text font-bold outline-none ${isEditMode ? 'ring-2 ring-purple-500/30 rounded px-2 bg-white/5' : ''}`}
                             contentEditable={isEditMode}
                             suppressContentEditableWarning
-                            onBlur={(e) => setName(e.target.innerText)}
+                            onBlur={(e) => setFooterData({ ...footerData, name: e.target.innerText })}
                         >
-                            {name}
+                            {footerData.name}
                         </span>
                         <span>. All rights reserved.</span>
                     </p>

@@ -1,21 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { hackathons as initialHackathons } from "@/data/experience";
+import { experienceData as initialExperience } from "@/data/experience";
 import { useEditor } from "@/context/EditorContext";
+
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
 
 export default function Experience() {
     const { isEditMode } = useEditor();
-    const [hackathons, setHackathons] = useState(initialHackathons);
+    const [experience, setExperience] = useState(initialExperience);
 
     useEffect(() => {
         const handleGlobalSave = async () => {
             if (!isEditMode) return;
 
-            const content = `export const hackathons = ${JSON.stringify(hackathons, null, 4)};\n`;
+            const content = `export const experienceData = ${JSON.stringify(experience, null, 4)};\n`;
 
             try {
-                await fetch("http://localhost:5001/save-content", {
+                await fetch(`${API_BASE_URL}/save-content`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -30,35 +33,44 @@ export default function Experience() {
 
         window.addEventListener("portfolio-save-all", handleGlobalSave);
         return () => window.removeEventListener("portfolio-save-all", handleGlobalSave);
-    }, [hackathons, isEditMode]);
+    }, [experience, isEditMode]);
 
     const addHackathon = () => {
-        setHackathons([
-            ...hackathons,
-            {
-                title: "New Hackathon",
-                icon: "🚀",
-                description: "Describe your hackathon experience here...",
-                tech: ["Next.js", "React"]
-            }
-        ]);
+        setExperience({
+            ...experience,
+            hackathons: [
+                ...experience.hackathons,
+                {
+                    title: "New Hackathon",
+                    icon: "🚀",
+                    description: "Describe your hackathon experience here...",
+                    tech: ["Next.js", "React"]
+                }
+            ]
+        });
     };
 
     const removeHackathon = (index) => {
-        setHackathons(hackathons.filter((_, i) => i !== index));
+        setExperience({
+            ...experience,
+            hackathons: experience.hackathons.filter((_, i) => i !== index)
+        });
     };
 
     const updateHackathon = (index, field, value) => {
-        const newHackathons = [...hackathons];
+        const newHackathons = [...experience.hackathons];
         newHackathons[index][field] = value;
-        setHackathons(newHackathons);
+        setExperience({ ...experience, hackathons: newHackathons });
     };
 
-
     const updateTech = (hIndex, tIndex, newValue) => {
-        const newHackathons = [...hackathons];
+        const newHackathons = [...experience.hackathons];
         newHackathons[hIndex].tech[tIndex] = newValue;
-        setHackathons(newHackathons);
+        setExperience({ ...experience, hackathons: newHackathons });
+    };
+
+    const updateHeader = (field, value) => {
+        setExperience({ ...experience, [field]: value });
     };
 
     return (
@@ -69,21 +81,23 @@ export default function Experience() {
                         className={`outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5' : ''}`}
                         contentEditable={isEditMode}
                         suppressContentEditableWarning
+                        onBlur={(e) => updateHeader('title', e.target.innerText)}
                     >
-                        Hackathon
+                        {experience.title}
                     </span> <span className="gradient-text">Experience</span>
                 </h2>
                 <p
                     className={`section-subtitle outline-none ${isEditMode ? 'ring-2 ring-purple-500/50 rounded-lg p-1 bg-white/5 mt-4' : ''}`}
                     contentEditable={isEditMode}
                     suppressContentEditableWarning
+                    onBlur={(e) => updateHeader('subtitle', e.target.innerText)}
                 >
-                    Participation in competitive software development events and collaborative problem-solving.
+                    {experience.subtitle}
                 </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:max-w-6xl mx-auto">
-                {hackathons.map((h, i) => (
+                {experience.hackathons.map((h, i) => (
                     <div key={i} className="glass-card p-6 md:p-8 flex flex-col gap-6 group relative">
                         {isEditMode && (
                             <button
@@ -136,9 +150,9 @@ export default function Experience() {
                             {isEditMode && (
                                 <button
                                     onClick={() => {
-                                        const newH = [...hackathons];
+                                        const newH = [...experience.hackathons];
                                         newH[i].tech.push("New Tag");
-                                        setHackathons(newH);
+                                        setExperience({ ...experience, hackathons: newH });
                                     }}
                                     className="tech-badge bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20"
                                 >

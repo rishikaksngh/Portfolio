@@ -2,12 +2,12 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { projects } from "@/data/projects";
+import { projectsData } from "@/data/projects";
 import { notFound } from "next/navigation";
 
 export default function ProjectDetail({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
-    const project = projects.find((p) => p.slug === slug);
+    const project = projectsData.projects.find((p) => p.slug === slug);
 
     if (!project) {
         notFound();
