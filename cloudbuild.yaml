@@ -2,20 +2,42 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
+# --- FRONTEND ---
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build','-t','gcr.io/$PROJECT_ID/portfolio','./frontend']
+  args: ['build','-t','gcr.io/$PROJECT_ID/portfolio-frontend','./frontend']
 
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push','gcr.io/$PROJECT_ID/portfolio']
+  args: ['push','gcr.io/$PROJECT_ID/portfolio-frontend']
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:
     - run
     - deploy
-    - portfolio
+    - portfolio-frontend
     - --image
-    - gcr.io/$PROJECT_ID/portfolio
+    - gcr.io/$PROJECT_ID/portfolio-frontend
+    - --region
+    - africa-south1
+    - --platform
+    - managed
+    - --allow-unauthenticated
+
+# --- BACKEND ---
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build','-t','gcr.io/$PROJECT_ID/portfolio-backend','./backend']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','gcr.io/$PROJECT_ID/portfolio-backend']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    - run
+    - deploy
+    - portfolio-backend
+    - --image
+    - gcr.io/$PROJECT_ID/portfolio-backend
     - --region
     - africa-south1
     - --platform

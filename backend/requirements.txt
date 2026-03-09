@@ -4,3 +4,4 @@ resend
 python-dotenv
 flask-limiter
 twilio
+gunicorn
