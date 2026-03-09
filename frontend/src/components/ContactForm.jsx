@@ -70,7 +70,7 @@ export default function ContactForm() {
             if (res.ok) {
                 setStatus({
                     type: "success",
-                    message: "Message sent successfully. I will get back to you soon.",
+                    message: "Message sent successfully. I'll get back to you soon.",
                 });
                 setFormData({ name: "", email: "", subject: "", message: "" });
             } else {
