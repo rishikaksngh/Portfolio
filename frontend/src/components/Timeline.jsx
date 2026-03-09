@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { timelineData as initialTimelineData } from "@/data/timeline";
 import { useEditor } from "@/context/EditorContext";
 
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+import { API_BASE_URL } from "@/config/api";
 
 const typeConfig = {
     education: {

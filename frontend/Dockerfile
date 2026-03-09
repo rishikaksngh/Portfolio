@@ -8,6 +8,10 @@ RUN npm install
 
 COPY . .
 
+# Set the environment variable during build so Next.js can inline it
+ARG NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+
 RUN npm run build
 
 EXPOSE 3000

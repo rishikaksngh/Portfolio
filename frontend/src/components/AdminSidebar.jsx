@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useEditor } from "@/context/EditorContext";
 import Link from "next/link";
 
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+import { API_BASE_URL } from "@/config/api";
 
 const navLinks = [
     { label: "Home", href: "/#home", icon: "🏠" },

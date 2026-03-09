@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useEditor } from "@/context/EditorContext";
 import { achievementsData as initialAchievements } from "@/data/achievements";
 
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+import { API_BASE_URL } from "@/config/api";
 
 export default function Achievements() {
     const { isEditMode } = useEditor();

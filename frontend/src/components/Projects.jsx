@@ -5,8 +5,7 @@ import ProjectCard from "./ProjectCard";
 import { projectsData as initialProjectsData } from "@/data/projects";
 import { useEditor } from "@/context/EditorContext";
 
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+import { API_BASE_URL } from "@/config/api";
 
 export default function Projects() {
     const { isEditMode } = useEditor();

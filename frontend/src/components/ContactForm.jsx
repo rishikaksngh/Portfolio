@@ -3,9 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useEditor } from "@/context/EditorContext";
 import { contactInfoData } from "@/data/contact";
-
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+import { API_BASE_URL } from "@/config/api";
 
 export default function ContactForm() {
     const { isEditMode } = useEditor();
@@ -78,7 +76,7 @@ export default function ContactForm() {
             } else {
                 setStatus({
                     type: "error",
-                    message: data?.error || "Failed to send message. Please try again later.",
+                    message: data?.message || data?.error || "Failed to send message. Please try again later.",
                 });
             }
         } catch (error) {

@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useEditor } from "@/context/EditorContext";
 import { responsibilitiesData as initialResponsibilities } from "@/data/leadership";
 
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
+import { API_BASE_URL } from "@/config/api";
 
 export default function Leadership() {
     const { isEditMode } = useEditor();
